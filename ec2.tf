@@ -38,7 +38,7 @@ resource "aws_network_acl" "ec2" {
   }
 }
 
-#Creates entries (a rule) in a network ACL
+# Creates entries (a rule) in a network ACL
 resource "aws_network_acl_rule" "ec2_http" {
   network_acl_id = "${aws_network_acl.ec2.id}"
   rule_number    = 100
@@ -59,10 +59,23 @@ resource "aws_network_acl_rule" "ec2_ssh" {
   to_port        = 22
 }
 
+# Create Internet Gateway
+resource "aws_internet_gateway" "ec2_internet_gateway" {
+	vpc_id = "${aws_vpc.ec2_vpc.id}"
+
+	tags {
+    Name = "ec2_internet_gateway"
+  }
+}
 
 # Routing table for public subnet
 resource "aws_route_table" "ec2_public" {
 	vpc_id = "${aws_vpc.ec2_vpc.id}"
+
+  route {
+		cidr_block = "0.0.0.0/0"
+		gateway_id = "${aws_internet_gateway.ec2_internet_gateway.id}"
+	}
 
 	tags {
     Name = "ec2_route_table_public"
@@ -108,7 +121,7 @@ resource "aws_instance" "web" {
   instance_type = "t2.micro"
   key_name      = "ec2_key_name"
 
-  # When using subnet_id and using a security groups from a non-default VPC, need to use vpc_security_group_ids
+  # When using subnet_id and using a security groups from a non-default VPC, need to use group id instead of name
   #security_groups = [ "ec2_security_group" ]
   security_groups = [ "${aws_security_group.ec2_security_group.id}" ]
 
