@@ -28,19 +28,21 @@ resource "aws_subnet" "ec2_public" {
 }
 
 # Create Network ACL
-resource "aws_network_acl" "ec2" {
-  vpc_id = "${aws_vpc.ec2_vpc.id}"
-
-  subnet_ids = [ "${aws_subnet.ec2_public.id}" ]
-
-  tags {
-    Name = "ec2_network_acl"
-  }
-}
+# resource "aws_network_acl" "ec2" {
+#   vpc_id = "${aws_vpc.ec2_vpc.id}"
+#
+#   subnet_ids = [ "${aws_subnet.ec2_public.id}" ]
+#
+#   tags {
+#     Name = "ec2_network_acl"
+#   }
+# }
 
 # Creates entries (a rule) in a network ACL
+/*
 resource "aws_network_acl_rule" "ec2_http" {
   network_acl_id = "${aws_network_acl.ec2.id}"
+  egress         = true
   rule_number    = 100
   protocol       = "tcp"
   rule_action    = "allow"
@@ -51,6 +53,7 @@ resource "aws_network_acl_rule" "ec2_http" {
 
 resource "aws_network_acl_rule" "ec2_ssh" {
   network_acl_id = "${aws_network_acl.ec2.id}"
+  egress         = false
   rule_number    = 200
   protocol       = "tcp"
   rule_action    = "allow"
@@ -58,6 +61,7 @@ resource "aws_network_acl_rule" "ec2_ssh" {
   from_port      = 22
   to_port        = 22
 }
+*/
 
 # Create Internet Gateway
 resource "aws_internet_gateway" "ec2_internet_gateway" {
@@ -115,6 +119,7 @@ resource "aws_key_pair" "deployer" {
   public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCx0PZMUM+ML5K3SW1mMHiB3L/v3Xh91sAiHFlt7Qf4++w999RMANP5GIbLRyYqc1KqJlreJQsv1ChuLn059gNdtz4l551jw56lAotuFUIOZ3LhTlw1XlX/bQTYGJAfxzgqs3BMPVBG3eZVtqY3gk2cI+w+SvAy0WYGVrZPuPJfmPL5gKU+ys8IvhLUqXKfUXWx8tu77Ni71/WjRfPqNHyIr6sPt6K03LOF03Qm9EQWHolf1wKesg+pUs1i0HEr0DC34WYWJUiDG1f/flkPvKqQa57rmIX2gMZicWEzyInPqZc8+dXDCoO4khjPzb0U1CImAiUYphhESIOOZ1rhVc+X swadesai@au10154"
 }
 
+
 # Create EC2 instance
 resource "aws_instance" "web" {
   ami           = "ami-30041c53"
@@ -128,6 +133,10 @@ resource "aws_instance" "web" {
   subnet_id = "${aws_subnet.ec2_public.id}"
 
   associate_public_ip_address = true
+
+  # Install Apache using a bash script
+  user_data = "${file("example.txt")}"
+  #user_data = "${template_file.httpd.rendered}"
 
   tags {
     name = "ec2_instance"
