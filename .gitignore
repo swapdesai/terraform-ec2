@@ -1,0 +1,9 @@
+access.tf
+
+terraform.tfstate
+terraform.tfstate.backup
+
+crash-course.pem
+crash-course.pem.pub
+
+.terraform
